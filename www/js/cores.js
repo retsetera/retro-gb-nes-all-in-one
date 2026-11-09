@@ -9,6 +9,18 @@
 export const EJS_VERSION = '4.2.3';
 export const EJS_CDN = `https://cdn.emulatorjs.org/${EJS_VERSION}/data/`;
 
+export function normalizeEjsProxy(value) {
+  const text = String(value || '').trim();
+  if (!text) return '';
+  try {
+    const url = new URL(text);
+    if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password || url.pathname !== '/' || url.search || url.hash) return null;
+    return url.origin;
+  } catch {
+    return null;
+  }
+}
+
 const R = 'required', REC = 'recommended', OPT = 'optional';
 // md5 = checksum libretro publishes (libretro-core-info `notes`) for the usual dump; used to verify what you add / download.
 const f = (name, level, note = '', md5 = '') => ({ name, level, note, md5 });

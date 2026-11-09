@@ -2,6 +2,7 @@
 const VERSION = 'dev';      // stamped to b<build> by scripts/stamp-build.mjs in CI, so every deployment changes this file and browsers notice the update
 const SHELL = `retro-pocket-shell-${VERSION}`;
 const RUNTIME = 'retro-pocket-ejs-v3';      // the EmulatorJS cores cache is version-independent: keep it across app updates
+const EJS_VERSION = '4.2.3';
 const SHELL_FILES = [
   './', 'index.html', 'player.html', 'join.html', 'manifest.webmanifest',
   'css/app.css', 'css/player.css', 'css/join.css', 'vendor/peerjs.min.js',
@@ -27,8 +28,8 @@ self.addEventListener('activate', (e) => {
 
 // Cross-origin isolation for threaded cores (PPSSPP, DOSBox Pure): player.html?...&iso=1 is served with COOP/COEP.
 // COEP "require-corp" blocks no-cors cross-origin subresources unless they send CORP, and EmulatorJS injects plain <script>
-// tags for its loader files, so cdn.emulatorjs.org responses are re-fetched with CORS (the CDN sends ACAO:*) and handed back
-// with `Cross-Origin-Resource-Policy: cross-origin`. Pages without ?iso=1 get no COOP/COEP and behave exactly as before.
+// tags for its loader files, so CDN and configured proxy responses are re-fetched with CORS and handed back with
+// `Cross-Origin-Resource-Policy: cross-origin`. Pages without ?iso=1 get no COOP/COEP and behave exactly as before.
 function isolate(r) {
   const h = new Headers(r.headers);
   h.set('Cross-Origin-Opener-Policy', 'same-origin'); h.set('Cross-Origin-Embedder-Policy', 'require-corp'); h.set('Cross-Origin-Resource-Policy', 'same-origin');
@@ -58,7 +59,8 @@ self.addEventListener('fetch', (e) => {
     return;
   }
 
-  if (url.hostname === 'cdn.emulatorjs.org') {
+  const proxiedEjsAsset = url.pathname.startsWith(`/emulatorjs/${EJS_VERSION}/data/`);
+  if (url.hostname === 'cdn.emulatorjs.org' || proxiedEjsAsset) {
     // cache-first: pinned, versioned assets never change
     e.respondWith((async () => {
       const cache = await caches.open(RUNTIME);

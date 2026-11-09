@@ -1,5 +1,5 @@
 // End-to-end test in headless Chrome: add ROM -> library -> launch EmulatorJS -> start -> exit -> resume.
-// Needs network access to cdn.emulatorjs.org. Usage: node tests/e2e.mjs   (CHROME=/path/to/chrome)
+// Needs network access to cdn.emulatorjs.org, or set EJS_PROXY to a deployed proxy origin. Usage: node tests/e2e.mjs
 import puppeteer from 'puppeteer-core';
 import { execFileSync, spawn } from 'node:child_process';
 import { mkdirSync } from 'node:fs';
@@ -17,6 +17,7 @@ const browser = await puppeteer.launch({ executablePath: process.env.CHROME || '
 try {
   const page = await browser.newPage();
   await page.setViewport({ width: 390, height: 844, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
+  if (process.env.EJS_PROXY) await page.evaluateOnNewDocument((proxy) => localStorage.setItem('rp.ejsProxy', proxy), process.env.EJS_PROXY);
   const errs = []; page.on('pageerror', (e) => errs.push(e.message));
   page.on('console', (m) => { if (m.type() === 'error' && !/Failed to load resource/.test(m.text())) errs.push('console: ' + m.text()); });
 
@@ -48,8 +49,9 @@ try {
     await page.click('.ejs_start_button');
     await page.waitForFunction(() => window.EJS_emulator && window.EJS_emulator.started, { timeout: 90000 });
     await sleep(2500);
-    const info = await page.evaluate(() => ({ core: window.EJS_emulator.getCore(), canvas: !!document.querySelector('canvas'), w: document.querySelector('canvas')?.width }));
+    const info = await page.evaluate(() => ({ core: window.EJS_emulator.getCore(), data: window.EJS_pathtodata, canvas: !!document.querySelector('canvas'), w: document.querySelector('canvas')?.width }));
     assert(info.core === 'gambatte' && info.canvas, JSON.stringify(info)); await page.screenshot({ path: 'tests/out/player.png' });
+    if (process.env.EJS_PROXY) assert(info.data === `${new URL(process.env.EJS_PROXY).origin}/emulatorjs/4.2.3/data/`, info.data);
     return JSON.stringify(info);
   });
   await step('exit saves auto-resume state', async () => {

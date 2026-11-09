@@ -1,7 +1,7 @@
 // Launches EmulatorJS (RetroArch cores compiled to WebAssembly) for one ROM from the IndexedDB library,
 // guards the core against crashes and keeps resumable snapshots.
 import * as db from './db.js';
-import { EJS_CDN, SYSTEMS, CORE_LABELS, altCore, needsThreads } from './cores.js';
+import { EJS_CDN, EJS_VERSION, SYSTEMS, CORE_LABELS, altCore, needsThreads, normalizeEjsProxy } from './cores.js';
 import { hardcoreOn, achievementsPanel } from './retroach.js';
 import { cheatsPanel, applyCheats, loadCheats } from './cheats.js';
 import { startSession, trackPlay, getNote } from './meta.js';
@@ -19,7 +19,8 @@ import { startPadNav } from './padnav.js';
 
 // Where EmulatorJS' loader, UI and cores come from: a PINNED release (see EJS_VERSION in cores.js), not "stable".
 // Override with window.RP_EJS_DATA for a self-hosted copy (README → Self-hosting EmulatorJS).
-export const EJS_DATA = window.RP_EJS_DATA || EJS_CDN;
+const ejsProxy = normalizeEjsProxy(localStorage.getItem('rp.ejsProxy'));
+export const EJS_DATA = window.RP_EJS_DATA || (ejsProxy ? `${ejsProxy}/emulatorjs/${EJS_VERSION}/data/` : EJS_CDN);
 
 const params = new URLSearchParams(location.search);
 const id = params.get('id');

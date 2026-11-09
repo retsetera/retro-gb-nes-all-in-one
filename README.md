@@ -432,7 +432,9 @@ After editing anything in `www/`, run `npx cap sync android` before rebuilding t
 * **APK:** `android.yml` builds a debug-signed APK on every push, uploads it as an artifact and refreshes the `latest` release; tagging `v1.0.0` creates a versioned release.
 
 ### Self-hosting EmulatorJS (optional)
-By default the loader and cores come from `https://cdn.emulatorjs.org/stable/data/`. To bundle them (fully offline from first launch), download an EmulatorJS release into `www/ejs/data/` (or the cores you need) and set `window.RP_EJS_DATA = 'ejs/data/'` before `js/player.js` loads in `www/player.html`; add the files to `SHELL_FILES` in `www/sw.js` if you want them precached.
+By default the loader and cores come from the pinned `https://cdn.emulatorjs.org/4.2.3/data/` release. To bundle them (fully offline from first launch), download an EmulatorJS release into `www/ejs/data/` (or the cores you need) and set `window.RP_EJS_DATA = 'ejs/data/'` before `js/player.js` loads in `www/player.html`; add the files to `SHELL_FILES` in `www/sw.js` if you want them precached.
+
+If a network blocks the public CDN, deploy the optional server from [`server/README.md`](server/README.md) and enter its origin in **Settings → Proxy server URL**. The proxy routes the pinned EmulatorJS loader, UI, and core assets through your server; they are cached after the first successful download.
 
 ## 🗂 Project structure
 

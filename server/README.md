@@ -5,6 +5,10 @@ It is a stock [PeerJS server](https://github.com/peers/peerjs-server) (MIT). It 
 
 After deploying, open Retro Pocket on **every device** and go to **Settings → 🌐 Online play → Signalling server**. Enter the URL, e.g. `https://retro-pocket-netplay.onrender.com`. The host's share link carries it automatically.
 
+## Emulator download proxy
+
+The same server can proxy the pinned EmulatorJS 4.2.3 loader, UI and core downloads for networks that block `cdn.emulatorjs.org`. After deploying it, open Retro Pocket → **Settings**, enter the server origin (for example `https://retro-pocket-netplay.onrender.com`) under **Proxy server URL**, and save. This routes all EmulatorJS files through `/emulatorjs/4.2.3/data/` on your server; the app caches them after the first successful download. The proxy only fetches assets from the pinned EmulatorJS CDN release and is not a general-purpose URL proxy.
+
 ## One-click options
 | Host | Steps |
 |---|---|

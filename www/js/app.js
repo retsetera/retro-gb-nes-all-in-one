@@ -1,5 +1,5 @@
 import * as meta from './meta.js';
-import { SYSTEMS, GROUPS, CORE_LABELS, sortedSystemKeys, titleFrom, defaultCore, loadSettings, saveSettings, extOf, needsThreads } from './cores.js';
+import { EJS_VERSION, SYSTEMS, GROUPS, CORE_LABELS, sortedSystemKeys, titleFrom, defaultCore, loadSettings, saveSettings, extOf, needsThreads, normalizeEjsProxy } from './cores.js';
 import { detect, storedZip, parseCue, parseM3u } from './detect.js';
 import { biosStatus } from './bios.js';
 import { openBios } from './biosui.js';
@@ -390,6 +390,15 @@ $('#btn-settings').onclick = async () => {
       el('input', { type: 'checkbox', checked: !!settings.autoResume, onchange: (e) => { settings.autoResume = e.target.checked; saveSettings(settings); } })),
     el('button', { className: 'row', id: 'btn-folders-settings', textContent: '📁 ROM folders…', onclick: () => { d.close(); drawFolders(); } }),
     el('button', { className: 'row', id: 'btn-net', textContent: '🌐 Online play (netplay)…', onclick: () => openNetSettings(d) }),
+    el('label', { className: 'row field' }, el('span', { textContent: 'Proxy server URL' }),
+      el('input', { id: 'ejs-proxy', value: localStorage.getItem('rp.ejsProxy') || '', placeholder: 'https://your-proxy-host', autocomplete: 'url', spellcheck: false })),
+    el('p', { className: 'muted small', textContent: `Optional: route first-time EmulatorJS ${EJS_VERSION} downloads through your own server. Deploy the server from /server, then enter its origin here (HTTPS for remote servers). Leave blank to use the public CDN.` }),
+    el('button', { className: 'row', id: 'btn-ejs-proxy-save', textContent: 'Save emulator proxy', onclick: () => {
+      const proxy = normalizeEjsProxy($('#ejs-proxy').value);
+      if (proxy === null) { toast('Enter only an http(s) server origin, e.g. https://your-proxy-host'); return; }
+      if (proxy) localStorage.setItem('rp.ejsProxy', proxy); else localStorage.removeItem('rp.ejsProxy');
+      toast(proxy ? 'Emulator downloads will use your proxy' : 'Emulator downloads will use the public CDN');
+    } }),
     el('button', { className: 'row', id: 'btn-cloud', textContent: '☁️ Cloud save sync (Google Drive)…', onclick: () => openCloud(d) }),
     el('button', { className: 'row', id: 'btn-ra', textContent: '🏆 RetroAchievements…', onclick: () => openRA(d) }),
     el('button', { className: 'row', id: 'btn-backup', textContent: '💾 Backup & restore…', onclick: () => { d.close(); openBackup($('#backup'), toast); } }),
